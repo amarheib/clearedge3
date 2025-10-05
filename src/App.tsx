@@ -240,14 +240,19 @@ function csvToInvoice(text: string) {
   const headers = headerLine.split(',').map(s => s.trim());
   const row = (rows[0] || '').split(',').map(s => s.trim());
 
+  // רק השדות המספריים מומרים למספר
+  const numericKeys = new Set(['total', 'vat']);
+
   const obj: any = {};
   headers.forEach((h, i) => {
-    // הסרת מירכאות מסביב לערך אם קיימות, למשל "1000"
+    // הסר מירכאות מסביב לערך אם יש
     const raw = (row[i] ?? '').replace(/^"(.*)"$/, '$1');
-    // המרה אוטומטית למספר אם זה נראה מספר
-    obj[h] = /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
+    // המרה למספר רק אם השדה מוגדר כמספרי
+    obj[h] = numericKeys.has(h) && /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
   });
-  return obj;}
+  return obj;
+}
+
 
 
 function sampleInvoice() {

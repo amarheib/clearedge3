@@ -107,7 +107,8 @@ function UploadAndValidate() {
 
       <AnimatePresence>{loading && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-6"><LoadingCard /></motion.div>)}</AnimatePresence>
 
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">{report && <OpenCase report={report} invoice={rawInvoice} />}
+
         {rawInvoice && (<InvoicePreview data={rawInvoice} />)}
         {report && (<ReportCard report={report} />)}
       </div>

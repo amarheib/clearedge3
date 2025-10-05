@@ -247,8 +247,7 @@ function csvToInvoice(text: string) {
     // המרה אוטומטית למספר אם זה נראה מספר
     obj[h] = /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
   });
-  return obj;
-}
+  return obj;}
 
 
 function sampleInvoice() {

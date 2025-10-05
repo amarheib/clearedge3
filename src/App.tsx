@@ -235,7 +235,21 @@ function validateInvoiceLocally(inv: any): Report {
 function req(code: string, severity: Severity, message: string, fix: string): Issue { return { code, severity, message, fix }; }
 function extractMeta(inv: any) { return { supplierVat: inv?.supplierVat ?? '', customerVat: inv?.customerVat ?? '', total: inv?.total ?? '', vat: inv?.vat ?? '', date: inv?.date ?? '', currency: inv?.currency ?? 'ILS' } }
 function fmt(v: any) { return v === '' || v == null ? '—' : String(v) }
-function csvToInvoice(text: string) { const [headerLine, ...rows] = text.trim().split(/\r?\n/); const headers = headerLine.split(',').map(s => s.trim()); const row = rows[0]?.split(',').map(s => s.trim()) ?? []; const obj: any = {}; headers.forEach((h, i) => { obj[h]= (/^\d+(\.\d+)?$/.test(row[i]||'')) ? Number(row[i]) : row[i]||''; }); return obj; }
+function csvToInvoice(text: string) {
+  const [headerLine, ...rows] = text.trim().split(/\r?\n/);
+  const headers = headerLine.split(',').map(s => s.trim());
+  const row = (rows[0] || '').split(',').map(s => s.trim());
+
+  const obj: any = {};
+  headers.forEach((h, i) => {
+    // הסרת מירכאות מסביב לערך אם קיימות, למשל "1000"
+    const raw = (row[i] ?? '').replace(/^"(.*)"$/, '$1');
+    // המרה אוטומטית למספר אם זה נראה מספר
+    obj[h] = /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw;
+  });
+  return obj;
+}
+
 
 function sampleInvoice() {
   return {

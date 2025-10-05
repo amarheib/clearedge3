@@ -107,7 +107,88 @@ function UploadAndValidate() {
 
       <AnimatePresence>{loading && (<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mt-6"><LoadingCard /></motion.div>)}</AnimatePresence>
 
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">{report && <OpenCase report={report} invoice={rawInvoice} />}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+{report && <OpenCase report={report} invoice={rawInvoice} />}
+function OpenCase({ report, invoice }: { report: any; invoice: any }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [sending, setSending] = useState(false);
+  const [caseId, setCaseId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const api = (window as any).__CLEAREDGE_API__ || "";
+
+  async function submit() {
+    setSending(true); setError(null);
+    try {
+      if (!api) throw new Error("API לא הוגדר ב-index.html");
+      const res = await fetch(`${api}/api/case`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          report,
+          contact: { name, email, phone },
+          attachments: [
+            { kind: "invoice/json", name: "invoice.json", data: invoice }
+          ]
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "שגיאה בשליחה");
+      setCaseId(data.caseId);
+    } catch (e: any) {
+      setError(e.message || "שגיאה");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <section className="mt-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">להמשיך? פתח תיק</h3>
+          {!caseId && (
+            <button onClick={() => setOpen(v => !v)}
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800">
+              פתח תיק
+            </button>
+          )}
+        </div>
+
+        {open && !caseId && (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="שם מלא"
+              className="border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="אימייל"
+              className="border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+            <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="טלפון"
+              className="border border-slate-300 rounded-xl px-3 py-2 text-sm" />
+            <div className="md:col-span-3 flex items-center gap-3">
+              <button onClick={submit} disabled={sending}
+                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60">
+                {sending ? "שולח…" : "שלח ופתח תיק"}
+              </button>
+              <span className="text-xs text-slate-500">
+                נשלח רק הדו״ח והמטא־דאטה. אין הנפקה/עקיפה של מספרי הקצאה.
+              </span>
+            </div>
+            {error && <p className="text-sm text-rose-600 md:col-span-3">{error}</p>}
+          </div>
+        )}
+
+        {caseId && (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-50 text-emerald-800 text-sm">
+            ✅ נפתח תיק בהצלחה. מספר תיק: <b>{caseId}</b>
+            <div className="text-xs text-emerald-700 mt-1">ניצור קשר בהקדם.</div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
         {rawInvoice && (<InvoicePreview data={rawInvoice} />)}
         {report && (<ReportCard report={report} />)}
